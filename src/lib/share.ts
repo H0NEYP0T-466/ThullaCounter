@@ -1,12 +1,13 @@
 import type { AppState } from '../types'
 import type { Leaderboard, PlayerStats } from './stats'
 import { sessionLabel } from './stats'
+import { pickVerdict } from './roasts'
 
 export function rankTitle(stats: PlayerStats, leaderboard: Leaderboard): string {
   if (stats.gamesAll === 0) return 'Unproven Rookie'
   if (stats.lossesAll === 0) return 'Clean Sheet Merchant'
   if (leaderboard.chiefId === stats.player.id) return 'Chief Bhabhi'
-  if (stats.rank <= 3) return 'Certified Bhabhi'
+  if (stats.rank <= 3) return 'Certified Thulla'
   return 'Wall of Shame Regular'
 }
 
@@ -26,43 +27,42 @@ function formatDate(ts: number): string {
   })
 }
 
-export function buildChallan(
-  state: AppState,
-  stats: PlayerStats,
-  leaderboard: Leaderboard,
-): string {
+export function buildChallan(stats: PlayerStats, leaderboard: Leaderboard): string {
   const name = stats.player.name
   const title = rankTitle(stats, leaderboard)
+  const total = leaderboard.stats.length
+  const place = stats.rank === 1 ? 'dead last where it matters' : stats.rank <= 3 ? 'near the bottom' : 'somehow not the worst'
   const lines: string[] = []
 
   lines.push('🚨 *OFFICIAL BHABHI CHALLAN* 🚨')
   lines.push('━━━━━━━━━━━━━━━')
   lines.push(`👤 Offender: *${name}*`)
-  lines.push(`🏅 Status: ${title}`)
-  lines.push(`📉 Total Losses: *${stats.lossesAll}*`)
+  lines.push(`🏅 Sentence: ${title}`)
+  lines.push(`📉 Total losses: *${stats.lossesAll}*`)
   lines.push(`   • Bhabhi Thulla: ${stats.bhabhiAll}`)
   lines.push(`   • Chess: ${stats.chessLosses}`)
   if (stats.streak > 1) {
-    lines.push(`🔥 Active Streak: *${stats.streak} losses in a row*`)
+    lines.push(`🔥 Currently on: *${stats.streak} losses in a row*`)
   }
   if (stats.bestStreak > 2) {
-    lines.push(`📈 Career Best (worst): ${stats.bestStreak} in a row`)
+    lines.push(`📈 Career worst: ${stats.bestStreak} in a row`)
   }
-  lines.push(`♟️ Chess Record: ${stats.chessWins}W · ${stats.chessLosses}L · ${stats.chessDraws}D`)
+  lines.push(`♟️ Chess record: ${stats.chessWins}W · ${stats.chessLosses}L · ${stats.chessDraws}D`)
   lines.push(`🎮 Games on record: ${stats.gamesAll}`)
-  lines.push(`📊 Rank: #${stats.rank} of ${leaderboard.stats.length}`)
+  lines.push(`📊 Rank: #${stats.rank} of ${total} — ${place}`)
   lines.push('━━━━━━━━━━━━━━━')
 
   if (stats.lossesAll === 0 && stats.gamesAll > 0) {
-    lines.push('✅ Zero losses. Absolutely shameless flex.')
+    lines.push('✅ Zero losses. Either a genius or a coward.')
   } else if (stats.streak >= 3) {
-    lines.push(`💰 Fine: ${stats.streak} chai + samosa. Payable immediately.`)
+    lines.push(`💰 FINE: ${stats.streak} chai + samosa. Pay up before the next break.`)
   } else if (leaderboard.chiefId === stats.player.id) {
-    lines.push('💰 Fine: 2 chai, 1 samosa, and permanent group-chat shame.')
+    lines.push('💰 FINE: 2 chai + 1 samosa + one (1) public apology in the group.')
   } else {
-    lines.push('💰 Fine: 1 chai. Settle it before the next break.')
+    lines.push('💰 FINE: 1 chai. Cheap, but so is the performance.')
   }
 
+  lines.push(`⚖️ ${pickVerdict()}`)
   lines.push(`📅 ${formatDate(Date.now())} · ThullaBoard`)
   return lines.join('\n')
 }
@@ -96,14 +96,14 @@ export function buildSessionReceipt(state: AppState, leaderboard: Leaderboard): 
   if (chief) {
     lines.push('')
     lines.push(`👑 Chief Bhabhi: *${chief.player.name}*`)
-    lines.push('Chai is on you. No excuses.')
+    lines.push('Chai is on you. No excuses, no appeals.')
   } else {
     lines.push('')
-    lines.push('😴 Nobody lost anything. Suspicious.')
+    lines.push('😴 Nobody lost anything. Suspicious. Check the deck.')
   }
 
   lines.push('━━━━━━━━━━━━━━━')
-  lines.push('📊 Tracked on ThullaBoard')
+  lines.push('📊 Tracked on ThullaBoard. Screenshot this.')
   return lines.join('\n')
 }
 

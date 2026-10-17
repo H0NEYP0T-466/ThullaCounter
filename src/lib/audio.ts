@@ -1,15 +1,78 @@
 /**
- * Every sound is synthesised with the Web Audio API — no audio files, no network,
- * so the board still roasts people on a hostel wifi that has given up.
+ * Real recordings, not beeps.
+ *
+ * Every cue is a trimmed, peak-normalised mono MP3 in /public/audio, decoded once
+ * into AudioBuffers so playback is instant even on a cold tap.
+ * Source: Mixkit free sound effects (see public/audio/CREDITS.md).
+ *
+ * If a file fails to load (offline, blocked, deleted), a synthesised slap keeps
+ * the board from going silent.
  */
+
+export type CueGroup = 'hits' | 'voices' | 'comedy' | 'crowd'
+
+export type Cue = {
+  id: string
+  label: string
+  emoji: string
+  group: CueGroup
+  weight?: number
+  file: string
+}
+
+export const CUE_GROUPS: { id: CueGroup; label: string }[] = [
+  { id: 'hits', label: 'Slaps & hits' },
+  { id: 'voices', label: 'Voices' },
+  { id: 'comedy', label: 'Comedy' },
+  { id: 'crowd', label: 'Crowd & stingers' },
+]
+
+export const CUES: Cue[] = [
+  { id: 'thappad', label: 'Thappad', emoji: '👋', group: 'hits', weight: 6, file: '/audio/thappad.mp3' },
+  { id: 'jordaar', label: 'Jordaar Thappad', emoji: '🖐️', group: 'hits', weight: 5, file: '/audio/jordaar.mp3' },
+  { id: 'chanta', label: 'Chanta', emoji: '💢', group: 'hits', weight: 4, file: '/audio/chanta.mp3' },
+  { id: 'hard-hit', label: 'Hard Hit', emoji: '👊', group: 'hits', weight: 4, file: '/audio/hard-hit.mp3' },
+  { id: 'combo', label: 'Punch Combo', emoji: '🥊', group: 'hits', weight: 2, file: '/audio/combo.mp3' },
+  { id: 'boxer', label: 'Boxer Down', emoji: '🤕', group: 'hits', weight: 2, file: '/audio/boxer.mp3' },
+  { id: 'blow', label: 'Direct Blow', emoji: '🥴', group: 'hits', weight: 4, file: '/audio/blow.mp3' },
+  { id: 'kungfu', label: 'Kung Fu Strike', emoji: '🥋', group: 'hits', weight: 2, file: '/audio/kungfu.mp3' },
+
+  { id: 'oww', label: 'Oww!', emoji: '😖', group: 'voices', weight: 4, file: '/audio/oww.mp3' },
+  { id: 'effort', label: 'Haan!', emoji: '😤', group: 'voices', weight: 2, file: '/audio/effort.mp3' },
+  { id: 'arre', label: 'Arre Yaar', emoji: '🗣️', group: 'voices', weight: 3, file: '/audio/arre.mp3' },
+  { id: 'donkey', label: 'Donkey Scream', emoji: '🫏', group: 'voices', weight: 3, file: '/audio/donkey.mp3' },
+  { id: 'man-pain', label: 'Man in Pain', emoji: '😫', group: 'voices', weight: 3, file: '/audio/man-pain.mp3' },
+  { id: 'ah-pain', label: 'Ah!', emoji: '😵', group: 'voices', weight: 2, file: '/audio/ah-pain.mp3' },
+
+  { id: 'clown', label: 'Clown Horn', emoji: '🤡', group: 'comedy', weight: 3, file: '/audio/clown.mp3' },
+  { id: 'trombone', label: 'Sad Trombone', emoji: '🎺', group: 'comedy', weight: 3, file: '/audio/trombone.mp3' },
+  { id: 'boing', label: 'Boing', emoji: '🪀', group: 'comedy', weight: 2, file: '/audio/boing.mp3' },
+  { id: 'bad-joke', label: 'Bad Joke Drums', emoji: '🥁', group: 'comedy', weight: 2, file: '/audio/bad-joke.mp3' },
+  { id: 'fail-piano', label: 'Fail Piano', emoji: '🎹', group: 'comedy', weight: 2, file: '/audio/fail-piano.mp3' },
+  { id: 'game-over', label: 'Game Over', emoji: '🎮', group: 'comedy', weight: 1, file: '/audio/game-over.mp3' },
+  { id: 'bell', label: 'Shame Bell', emoji: '🔔', group: 'comedy', weight: 1, file: '/audio/bell.mp3' },
+
+  { id: 'wrong', label: 'Wrong Answer', emoji: '🚫', group: 'crowd', weight: 4, file: '/audio/wrong.mp3' },
+  { id: 'vine-boom', label: 'Vine Boom', emoji: '💥', group: 'crowd', weight: 4, file: '/audio/vine-boom.mp3' },
+  { id: 'trailer', label: 'Cinematic Boom', emoji: '🎬', group: 'crowd', weight: 2, file: '/audio/trailer.mp3' },
+  { id: 'cartoon-laugh', label: 'Cartoon Laugh', emoji: '😂', group: 'crowd', weight: 3, file: '/audio/cartoon-laugh.mp3' },
+  { id: 'evil-laugh', label: 'Evil Laugh', emoji: '😈', group: 'crowd', weight: 2, file: '/audio/evil-laugh.mp3' },
+  { id: 'crowd-laugh', label: 'Crowd Laugh', emoji: '🍅', group: 'crowd', weight: 2, file: '/audio/crowd-laugh.mp3' },
+  { id: 'cheer', label: 'Crowd Cheer', emoji: '🎉', group: 'crowd', weight: 1, file: '/audio/cheer.mp3' },
+  { id: 'boo', label: 'Crowd Boo', emoji: '😩', group: 'crowd', weight: 1, file: '/audio/boo.mp3' },
+  { id: 'siren', label: 'Shame Siren', emoji: '🚨', group: 'crowd', weight: 1, file: '/audio/siren.mp3' },
+]
 
 type AudioContextCtor = typeof AudioContext
 
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
 let muted = false
-let volume = 0.7
+let volume = 0.85
 let lastCueId = ''
+let announcer = true
+const buffers = new Map<string, AudioBuffer>()
+let preloadPromise: Promise<void> | null = null
 
 function getContext(): AudioContext | null {
   if (typeof window === 'undefined') return null
@@ -21,7 +84,10 @@ function getContext(): AudioContext | null {
     try {
       ctx = new Ctor()
       master = ctx.createGain()
-      master.gain.value = muted ? 0 : volume
+      master.gain.value = muted ? 0 : volume * 0.95 * 0.95
+
+      // Clips are already peak-normalised to about -1 dBFS, so the master bus is
+      // a plain gain with a little headroom. No compression: it only flattens slaps.
       master.connect(ctx.destination)
     } catch {
       return null
@@ -31,12 +97,44 @@ function getContext(): AudioContext | null {
   return ctx
 }
 
-export function configureAudio(next: { muted: boolean; volume: number }): void {
+export function configureAudio(next: { muted: boolean; volume: number; announcer: boolean }): void {
   muted = next.muted
   volume = next.volume
+  announcer = next.announcer
   if (master && ctx) {
-    master.gain.setTargetAtTime(muted ? 0 : volume, ctx.currentTime, 0.02)
+    master.gain.setTargetAtTime(muted ? 0 : volume * 0.95, ctx.currentTime, 0.015)
   }
+  if (muted && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
+}
+
+/**
+ * The announcer: the device's own voice reading the verdict out loud.
+ * Silent (not broken) on machines with no speech engine installed.
+ */
+export function speakTaunt(text: string): void {
+  if (!announcer || muted || volume <= 0) return
+  if (typeof speechSynthesis === 'undefined' || typeof SpeechSynthesisUtterance === 'undefined') return
+  try {
+    const voices = speechSynthesis.getVoices()
+    if (voices.length === 0) return
+    const pick =
+      voices.find((v) => /en[-_](GB|US)/i.test(v.lang) && /male|daniel|alex|arthur|fred/i.test(v.name)) ??
+      voices.find((v) => /^en/i.test(v.lang)) ??
+      voices[0]
+    const line = new SpeechSynthesisUtterance(text)
+    line.voice = pick
+    line.rate = 0.94
+    line.pitch = 0.7
+    line.volume = Math.min(1, volume)
+    speechSynthesis.cancel()
+    speechSynthesis.speak(line)
+  } catch {
+    // Speech is a bonus, never a dependency.
+  }
+}
+
+export function stopSpeech(): void {
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
 }
 
 /** Must be called from a real user gesture once, or mobile browsers stay silent. */
@@ -44,66 +142,39 @@ export function unlockAudio(): void {
   const context = getContext()
   if (!context) return
   if (context.state === 'suspended') void context.resume()
+  void preloadAudio()
 }
 
-type ToneOptions = {
-  freq: number
-  endFreq?: number
-  type?: OscillatorType
-  duration?: number
-  gain?: number
-  delay?: number
-  detune?: number
-  filter?: number
-}
-
-function tone(context: AudioContext, out: AudioNode, options: ToneOptions): void {
-  const {
-    freq,
-    endFreq,
-    type = 'sine',
-    duration = 0.25,
-    gain = 0.5,
-    delay = 0,
-    detune = 0,
-    filter,
-  } = options
-  const start = context.currentTime + delay
-  const osc = context.createOscillator()
-  const amp = context.createGain()
-  osc.type = type
-  osc.frequency.setValueAtTime(freq, start)
-  if (endFreq && endFreq !== freq) {
-    osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), start + duration)
+async function loadOne(cue: Cue): Promise<AudioBuffer | null> {
+  const context = getContext()
+  if (!context) return null
+  const cached = buffers.get(cue.id)
+  if (cached) return cached
+  try {
+    const response = await fetch(cue.file)
+    if (!response.ok) return null
+    const data = await response.arrayBuffer()
+    const buffer = await context.decodeAudioData(data)
+    buffers.set(cue.id, buffer)
+    return buffer
+  } catch {
+    return null
   }
-  osc.detune.setValueAtTime(detune, start)
-
-  amp.gain.setValueAtTime(0.0001, start)
-  amp.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), start + 0.012)
-  amp.gain.exponentialRampToValueAtTime(0.0001, start + duration)
-
-  let node: AudioNode = osc
-  if (filter) {
-    const biquad = context.createBiquadFilter()
-    biquad.type = 'lowpass'
-    biquad.frequency.setValueAtTime(filter, start)
-    osc.connect(biquad)
-    node = biquad
-  }
-  node.connect(amp)
-  amp.connect(out)
-  osc.start(start)
-  osc.stop(start + duration + 0.05)
 }
 
-function noise(
-  context: AudioContext,
-  out: AudioNode,
-  options: { duration?: number; gain?: number; delay?: number; freq?: number; q?: number },
-): void {
-  const { duration = 0.15, gain = 0.4, delay = 0, freq = 1600, q = 0.9 } = options
-  const start = context.currentTime + delay
-  const frames = Math.max(1, Math.floor(context.sampleRate * duration))
+export function preloadAudio(): Promise<void> {
+  if (!preloadPromise) {
+    preloadPromise = Promise.all(CUES.map((cue) => loadOne(cue)))
+      .then(() => undefined)
+      .catch(() => undefined)
+  }
+  return preloadPromise
+}
+
+/** Last-resort slap, synthesised, used only when a file cannot be fetched. */
+function synthSlap(context: AudioContext, out: AudioNode): void {
+  const start = context.currentTime
+  const frames = Math.floor(context.sampleRate * 0.09)
   const buffer = context.createBuffer(1, frames, context.sampleRate)
   const data = buffer.getChannelData(0)
   for (let i = 0; i < frames; i += 1) {
@@ -112,164 +183,78 @@ function noise(
   }
   const source = context.createBufferSource()
   source.buffer = buffer
-  const biquad = context.createBiquadFilter()
-  biquad.type = 'bandpass'
-  biquad.frequency.setValueAtTime(freq, start)
-  biquad.Q.setValueAtTime(q, start)
+  const band = context.createBiquadFilter()
+  band.type = 'bandpass'
+  band.frequency.value = 1400
+  band.Q.value = 0.7
   const amp = context.createGain()
-  amp.gain.setValueAtTime(gain, start)
-  amp.gain.exponentialRampToValueAtTime(0.0001, start + duration)
-  source.connect(biquad)
-  biquad.connect(amp)
+  amp.gain.setValueAtTime(0.9, start)
+  amp.gain.exponentialRampToValueAtTime(0.0001, start + 0.12)
+  source.connect(band)
+  band.connect(amp)
   amp.connect(out)
   source.start(start)
+
+  const osc = context.createOscillator()
+  const thump = context.createGain()
+  osc.frequency.setValueAtTime(170, start)
+  osc.frequency.exponentialRampToValueAtTime(55, start + 0.16)
+  thump.gain.setValueAtTime(0.8, start)
+  thump.gain.exponentialRampToValueAtTime(0.0001, start + 0.18)
+  osc.connect(thump)
+  thump.connect(out)
+  osc.start(start)
+  osc.stop(start + 0.2)
 }
 
-export type Cue = {
-  id: string
-  label: string
-  emoji: string
-  play: (context: AudioContext, out: AudioNode) => void
-}
-
-export const CUES: Cue[] = [
-  {
-    id: 'slap',
-    label: 'Thappad',
-    emoji: '👋',
-    play: (context, out) => {
-      noise(context, out, { duration: 0.13, gain: 0.75, freq: 2100, q: 0.7 })
-      tone(context, out, { freq: 180, endFreq: 60, type: 'sine', duration: 0.18, gain: 0.5 })
-    },
-  },
-  {
-    id: 'clown',
-    label: 'Clown Horn',
-    emoji: '🤡',
-    play: (context, out) => {
-      tone(context, out, { freq: 320, endFreq: 560, type: 'sawtooth', duration: 0.18, gain: 0.3, filter: 2200 })
-      tone(context, out, { freq: 330, endFreq: 520, type: 'square', duration: 0.18, gain: 0.16, delay: 0.02, filter: 1800 })
-      tone(context, out, { freq: 540, endFreq: 300, type: 'sawtooth', duration: 0.3, gain: 0.28, delay: 0.2, filter: 2000 })
-    },
-  },
-  {
-    id: 'drama',
-    label: 'Soap Opera Sting',
-    emoji: '🎭',
-    play: (context, out) => {
-      const chord = [293.66, 349.23, 440, 587.33]
-      chord.forEach((freq, index) => {
-        tone(context, out, {
-          freq,
-          type: 'triangle',
-          duration: 1.35,
-          gain: 0.16,
-          delay: index * 0.015,
-          detune: index % 2 === 0 ? -6 : 6,
-        })
-      })
-      tone(context, out, { freq: 110, endFreq: 42, type: 'sine', duration: 1.1, gain: 0.4 })
-      noise(context, out, { duration: 0.6, gain: 0.09, freq: 4000, q: 0.4 })
-    },
-  },
-  {
-    id: 'trombone',
-    label: 'Sad Trombone',
-    emoji: '🎺',
-    play: (context, out) => {
-      const notes = [233.08, 220, 207.65, 185]
-      notes.forEach((freq, index) => {
-        tone(context, out, {
-          freq,
-          endFreq: freq * 0.94,
-          type: 'sawtooth',
-          duration: index === 3 ? 0.65 : 0.24,
-          gain: 0.26,
-          delay: index * 0.26,
-          filter: 1100,
-        })
-      })
-    },
-  },
-  {
-    id: 'airhorn',
-    label: 'Airhorn',
-    emoji: '📢',
-    play: (context, out) => {
-      const bursts = [0, 0.16, 0.32]
-      bursts.forEach((delay, index) => {
-        const hold = index === 2 ? 0.42 : 0.11
-        ;[415, 440, 466].forEach((freq) => {
-          tone(context, out, {
-            freq,
-            type: 'sawtooth',
-            duration: hold,
-            gain: 0.11,
-            delay,
-            detune: (freq - 440) * 4,
-            filter: 2600,
-          })
-        })
-      })
-    },
-  },
-  {
-    id: 'boom',
-    label: 'Cinematic Boom',
-    emoji: '💥',
-    play: (context, out) => {
-      tone(context, out, { freq: 150, endFreq: 38, type: 'sine', duration: 0.95, gain: 0.6 })
-      noise(context, out, { duration: 0.5, gain: 0.28, freq: 320, q: 0.5 })
-      tone(context, out, { freq: 78, endFreq: 30, type: 'triangle', duration: 0.7, gain: 0.3, delay: 0.04 })
-    },
-  },
-  {
-    id: 'buzzer',
-    label: 'Wrong Answer',
-    emoji: '🚫',
-    play: (context, out) => {
-      tone(context, out, { freq: 138, type: 'square', duration: 0.22, gain: 0.24, filter: 900 })
-      tone(context, out, { freq: 104, type: 'square', duration: 0.3, gain: 0.24, delay: 0.24, filter: 800 })
-    },
-  },
-  {
-    id: 'sparkle',
-    label: 'Villain Laugh',
-    emoji: '😈',
-    play: (context, out) => {
-      for (let i = 0; i < 5; i += 1) {
-        tone(context, out, {
-          freq: 300 - i * 22,
-          endFreq: 260 - i * 20,
-          type: 'sawtooth',
-          duration: 0.1,
-          gain: 0.16,
-          delay: i * 0.13,
-          filter: 1200,
-        })
-      }
-      tone(context, out, { freq: 90, endFreq: 55, type: 'sine', duration: 0.8, gain: 0.2 })
-    },
-  },
-]
-
-export function playCue(cue: Cue): void {
+export async function playCue(cue: Cue): Promise<void> {
   const context = getContext()
   if (!context || !master) return
   if (muted || volume <= 0) return
-  try {
-    cue.play(context, master)
-  } catch {
-    // A blocked audio context must never break scoring.
+
+  const buffer = await loadOne(cue)
+  if (!buffer) {
+    synthSlap(context, master)
+    return
   }
+
+  const source = context.createBufferSource()
+  source.buffer = buffer
+  // A little pitch drift keeps repeats from sounding like a broken button.
+  source.playbackRate.value = 0.96 + Math.random() * 0.08
+
+  const gain = context.createGain()
+  gain.gain.value = 1
+
+  if (context.createStereoPanner) {
+    const panner = context.createStereoPanner()
+    panner.pan.value = (Math.random() - 0.5) * 0.35
+    source.connect(gain)
+    gain.connect(panner)
+    panner.connect(master)
+  } else {
+    source.connect(gain)
+    gain.connect(master)
+  }
+
+  source.start()
 }
 
 export function playRandomLossCue(): Cue | null {
   if (CUES.length === 0) return null
   const pool = CUES.filter((cue) => cue.id !== lastCueId)
-  const cue = pool[Math.floor(Math.random() * pool.length)] ?? CUES[0]
+  const total = pool.reduce((sum, cue) => sum + (cue.weight ?? 1), 0)
+  let ticket = Math.random() * total
+  let cue = pool[pool.length - 1]
+  for (const candidate of pool) {
+    ticket -= candidate.weight ?? 1
+    if (ticket <= 0) {
+      cue = candidate
+      break
+    }
+  }
   lastCueId = cue.id
-  playCue(cue)
+  void playCue(cue)
   return cue
 }
 

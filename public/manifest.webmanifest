@@ -1,0 +1,18 @@
+{
+  "name": "ThullaBoard — Chief Bhabhi Tracker",
+  "short_name": "ThullaBoard",
+  "description": "Track Bhabhi Thulla losses and chess rivalries. Crown the Chief Bhabhi. Send the challan.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08080b",
+  "theme_color": "#08080b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

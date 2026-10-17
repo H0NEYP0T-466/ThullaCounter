@@ -1,32 +1,64 @@
-# React + TypeScript + Vite
+# ThullaBoard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The indisputable record of who lost at Bhabhi Thulla and chess during university breaks.
+One tap per loss, automatic shame, WhatsApp challans ready to paste.
 
-Currently, two official plugins are available:
+Runs entirely in the browser. No backend, no accounts, no database — everything lives in `localStorage` on the phone that keeps score.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What it does
 
-## React Compiler
+- **Roster** — add friends, rename by tapping a name, toggle who is at the table without deleting anyone.
+- **Bhabhi Thulla** — one big tap target per player. Tap the loser, their count and losing streak go up, the round counter moves.
+- **Chess** — pick white and black, record a win either way or a draw. Head-to-head scorelines update instantly (`Fezan 4 — 2 Shoaib`).
+- **Hall of Shame** — ranked by losses, with a crown on the current Chief Bhabhi, a Clean Sheet badge for anyone untouched, and a Today / All-time switch.
+- **Soundboard** — 30 real clips: slaps and punches, pained voices, clown horn, sad trombone, bad-joke drums, vine boom, wrong-answer buzzer, crowd laugh/boo/cheer, shame siren. A weighted random one fires on every recorded loss, with pitch drift so repeats don't sound canned. Global mute and volume live in the header, every clip can be previewed, and an optional **Announcer** reads the verdict out loud using the device's own voice.
+- **Challan** — per-player receipt formatted for WhatsApp, plus a full session receipt for the group chat. Copy or open WhatsApp directly.
+- **Portability** — auto-saves locally, JSON export/import for backups and phone transfers, and "Start new session" clears today while keeping all-time records.
+- **Undo** — every recorded loss gets an Undo button in the toast, because thumbs slip.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run it
 
-## Expanding the Oxlint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+```bash
+npm run build     # type-check + production bundle in dist/
+npm run preview   # serve the built bundle
+npm run lint
+```
 
-```json
+## Deploy to Vercel
+
+Import the repo, keep the detected defaults (framework: Vite, build: `npm run build`, output: `dist`). No environment variables, no rewrites, no server.
+
+Or from the CLI:
+
+```bash
+npx vercel --prod
+```
+
+## How the data is shaped
+
+One JSON blob under the key `thullaboard.v1`:
+
+```ts
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+  version: 1,
+  players: [{ id, name, emoji, active, createdAt }],
+  sessions: [{ id, startedAt, endedAt }],
+  currentSessionId: string,
+  bhabhi: [{ id, playerId, sessionId, ts }],
+  chess: [{ id, p1, p2, result: 'p1' | 'p2' | 'draw', sessionId, ts }],
+  settings: { muted, volume }
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Nothing is overwritten when a session resets — a new session row is appended, so all-time totals are just "all entries". Imports run through a sanitiser, so a hand-edited or truncated backup cannot brick the board.
+
+## Notes
+
+- Audio is 30 licensed MP3s (~570 KB total) decoded into `AudioBuffer`s once, so taps play instantly. A synthesised slap takes over if a file cannot be fetched. Credits: `public/audio/CREDITS.md`. The first tap unlocks audio (mobile browser rule).
+- Losses are recorded optimistically and persist immediately; there is no save button anywhere.
+- Layout is built for a phone held over a table: 44px+ tap targets, safe-area padding, sticky header, dark theme.

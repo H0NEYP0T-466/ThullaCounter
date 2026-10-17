@@ -7,7 +7,16 @@ export const EMOJIS = [
   '🧠', '🍕', '🦍', '🐺', '💀', '🔥', '🎩', '🫠', '🐢', '🦅',
 ]
 
-export const QUICK_NAMES = ['Fezan', 'Shoaib', 'Hamza', 'Ali', 'Bilal', 'Zain', 'Usman', 'Taha']
+export const QUICK_PLAYERS: { name: string; emoji: string }[] = [
+  { name: 'Fezan', emoji: '😎' },
+  { name: 'Shoaib', emoji: '🤡' },
+  { name: 'Hamza', emoji: '🐐' },
+  { name: 'Ali', emoji: '🦁' },
+  { name: 'Bilal', emoji: '🐍' },
+  { name: 'Zain', emoji: '🐺' },
+  { name: 'Usman', emoji: '🦍' },
+  { name: 'Taha', emoji: '🐢' },
+]
 
 export function uid(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -29,7 +38,7 @@ export function createEmptyState(now = Date.now()): AppState {
     currentSessionId: session.id,
     bhabhi: [],
     chess: [],
-    settings: { muted: false, volume: 0.7 },
+    settings: { muted: false, volume: 0.9, announcer: true },
   }
 }
 
@@ -130,7 +139,8 @@ export function sanitize(raw: unknown): AppState {
     chess,
     settings: {
       muted: settingsInput.muted === true,
-      volume: Math.min(1, Math.max(0, asNumber(settingsInput.volume, 0.7))),
+      volume: Math.min(1, Math.max(0, asNumber(settingsInput.volume, 0.9))),
+      announcer: settingsInput.announcer !== false,
     },
   }
 }
@@ -174,6 +184,11 @@ export function readJSONFile(file: File): Promise<AppState> {
       try {
         const parsed = JSON.parse(String(reader.result))
         if (!parsed || typeof parsed !== 'object') throw new Error('Not a ThullaBoard backup')
+        const shape = parsed as Record<string, unknown>
+        const looksRight =
+          Array.isArray(shape.players) &&
+          (Array.isArray(shape.bhabhi) || Array.isArray(shape.chess) || Array.isArray(shape.sessions))
+        if (!looksRight) throw new Error('Not a ThullaBoard backup')
         resolve(sanitize(parsed))
       } catch (err) {
         reject(err instanceof Error ? err : new Error('Could not read that file'))

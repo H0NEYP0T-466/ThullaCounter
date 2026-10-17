@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Store } from '../lib/useStore'
 import type { Leaderboard } from '../lib/stats'
 import { pairKey } from '../lib/stats'
 import type { ChessResult } from '../types'
-import { timeAgo } from '../lib/format'
+import { plural, timeAgo } from '../lib/format'
 import { Icon } from './Icon'
 
 export function ChessTab({
@@ -21,13 +21,8 @@ export function ChessTab({
   const [white, setWhite] = useState<string | null>(null)
   const [black, setBlack] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (white && !activePlayers.some((p) => p.id === white)) setWhite(null)
-    if (black && !activePlayers.some((p) => p.id === black)) setBlack(null)
-  }, [activePlayers, white, black])
-
-  const whitePlayer = state.players.find((p) => p.id === white) ?? null
-  const blackPlayer = state.players.find((p) => p.id === black) ?? null
+  const whitePlayer = activePlayers.find((p) => p.id === white) ?? null
+  const blackPlayer = activePlayers.find((p) => p.id === black) ?? null
   const ready = !!whitePlayer && !!blackPlayer && whitePlayer.id !== blackPlayer.id
 
   const pair = useMemo(() => {
@@ -175,7 +170,7 @@ export function ChessTab({
         <section className="section">
           <div className="section__head">
             <h2>Rivalries</h2>
-            <span className="muted">{board.h2h.length} pairings</span>
+            <span className="muted">{plural(board.h2h.length, 'pairing')}</span>
           </div>
           <ul className="rivalry">
             {board.h2h.map((row) => {
@@ -202,7 +197,7 @@ export function ChessTab({
                   </div>
                   <div className="rivalry__meta">
                     <span>{row.played} played</span>
-                    <span>{row.draws} draws</span>
+                    <span>{plural(row.draws, 'draw')}</span>
                     <span>{timeAgo(row.lastAt)}</span>
                   </div>
                 </li>

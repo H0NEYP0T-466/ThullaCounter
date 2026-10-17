@@ -45,7 +45,11 @@ export function BhabhiTab({
           <br />
           with the last card?
         </h1>
-        <p className="hero__sub">Tap the loser. Their tally goes up instantly.</p>
+        <p className="hero__sub">
+          {chief
+            ? `${chief.player.name} is holding the crown with ${chief.lossesAll} losses. Tap the next loser.`
+            : 'Tap the loser. Their tally goes up instantly.'}
+        </p>
         <div className="hero__stats">
           <div>
             <strong>{board.sessionBhabhi}</strong>

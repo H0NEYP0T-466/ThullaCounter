@@ -40,6 +40,7 @@ export type AppState = {
   settings: {
     muted: boolean
     volume: number
+    announcer: boolean
   }
 }
 
