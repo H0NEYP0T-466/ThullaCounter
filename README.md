@@ -15,6 +15,8 @@ Runs entirely in the browser. No backend, no accounts, no database — everythin
 - **Challan** — per-player receipt formatted for WhatsApp, plus a full session receipt for the group chat. Copy or open WhatsApp directly.
 - **Portability** — auto-saves locally, JSON export/import for backups and phone transfers, and "Start new session" clears today while keeping all-time records.
 - **Undo** — every recorded loss gets an Undo button in the toast, because thumbs slip.
+- **Erase guard** — "Erase everything" asks for a password (`shoaib`) before it deletes anything. It is a stop against a fat thumb in a group of friends, not real security: the check runs in the browser, so treat it as a speed bump.
+- **Erase guard** — "Erase everything" asks for a password (`shoaib`) before it deletes anything. It is a stop against a fat thumb in a group of friends, not real security: the check runs in the browser, so treat it as a speed bump.
 
 ## Run it
 
