@@ -47,7 +47,7 @@ export function BhabhiTab({
         </h1>
         <p className="hero__sub">
           {chief
-            ? `${chief.player.name} is holding the crown with ${chief.lossesAll} losses. Tap the next loser.`
+            ? `${chief.player.name} is holding the crown with ${plural(chief.lossesAll, 'loss', 'losses')}. Tap the next loser.`
             : 'Tap the loser. Their tally goes up instantly.'}
         </p>
         <div className="hero__stats">

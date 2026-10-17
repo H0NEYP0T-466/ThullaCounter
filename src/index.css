@@ -1818,7 +1818,8 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  max-width: calc(100vw - 28px);
+  width: max-content;
+  max-width: calc(100vw - 24px);
   padding: 11px 12px 11px 15px;
   border-radius: 999px;
   background: rgba(28, 28, 37, 0.97);
@@ -1846,9 +1847,11 @@ p {
 .toast__msg {
   font-size: 0.8rem;
   font-weight: 500;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .toast__action {
@@ -1878,7 +1881,7 @@ p {
 /* ---------- the slap ---------- */
 
 .app--shake {
-  animation: quake 460ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  animation: quake 620ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
 @keyframes quake {
@@ -1893,11 +1896,11 @@ p {
   30%,
   50%,
   70% {
-    transform: translate3d(-7px, 2px, 0) rotate(-0.4deg);
+    transform: translate3d(-11px, 3px, 0) rotate(-0.6deg);
   }
   40%,
   60% {
-    transform: translate3d(7px, -1px, 0) rotate(0.4deg);
+    transform: translate3d(11px, -2px, 0) rotate(0.6deg);
   }
 }
 
@@ -1932,11 +1935,77 @@ p {
   }
 }
 
-.slam__emoji {
-  font-size: 3rem;
-  margin-bottom: 6px;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
-  animation: slam-pop 620ms cubic-bezier(0.16, 1.2, 0.3, 1);
+.slam::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.26), transparent 58%);
+  animation: slam-flash 520ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes slam-flash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.slam__hand {
+  position: relative;
+  font-size: clamp(4.6rem, 26vw, 7rem);
+  line-height: 1;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 16px 30px rgba(0, 0, 0, 0.7));
+  animation: hand-slam 640ms cubic-bezier(0.16, 1.2, 0.3, 1) both;
+}
+
+@keyframes hand-slam {
+  0% {
+    transform: scale(3.4) rotate(-40deg);
+    opacity: 0;
+  }
+  38% {
+    transform: scale(0.9) rotate(-10deg);
+    opacity: 1;
+  }
+  66% {
+    transform: scale(1.06) rotate(-18deg);
+  }
+  100% {
+    transform: scale(1) rotate(-14deg);
+    opacity: 1;
+  }
+}
+
+.slam__ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 38vmin;
+  height: 38vmin;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 0 50px rgba(229, 72, 77, 0.75),
+    inset 0 0 50px rgba(229, 72, 77, 0.55);
+  animation: slam-shock 760ms cubic-bezier(0.16, 0.9, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes slam-shock {
+  0% {
+    transform: scale(0.15);
+    opacity: 0.95;
+    border-width: 14px;
+  }
+  100% {
+    transform: scale(2.7);
+    opacity: 0;
+    border-width: 1px;
+  }
 }
 
 .slam__word {
@@ -1953,7 +2022,8 @@ p {
     0 12px 26px rgba(229, 72, 77, 0.55),
     0 0 70px rgba(229, 72, 77, 0.5);
   transform: rotate(-7deg);
-  animation: slam-pop 520ms cubic-bezier(0.16, 1.2, 0.3, 1);
+  margin-top: 6px;
+  animation: slam-pop 520ms cubic-bezier(0.16, 1.2, 0.3, 1) both;
 }
 
 .slam__word--long {
@@ -1967,17 +2037,19 @@ p {
 }
 
 .slam__name {
-  margin-top: 16px;
-  padding: 6px 16px;
+  position: relative;
+  margin-top: 14px;
+  padding: 7px 18px;
   border-radius: 999px;
-  background: rgba(10, 8, 10, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 8, 10, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   transform: rotate(-2deg);
-  animation: slam-pop 560ms cubic-bezier(0.16, 1.2, 0.3, 1);
+  animation: slam-pop 560ms cubic-bezier(0.16, 1.2, 0.3, 1) both;
 }
 
 @keyframes slam-pop {

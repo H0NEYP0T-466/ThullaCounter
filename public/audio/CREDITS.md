@@ -41,3 +41,71 @@ mono 44.1 kHz, and peak-normalised to about -1 dBFS. Nothing else was altered.
 | siren.mp3 | Siren tone | 1649 |
 
 Total: 30 files, roughly 570 KB.
+
+## Desi meme clips
+
+The `desi` group is pulled from [MyInstants](https://www.myinstants.com/) — user-uploaded
+meme audio, not a licensed library. They are here for personal use in a private friends
+group. They are **not** cleared for redistribution or commercial deployment; replace them
+if this ever goes properly public.
+
+| File | MyInstants clip |
+| --- | --- |
+| thulla.mp3 | thulla-by-hela |
+| goop.mp3 | goop-goop-goop |
+| moye.mp3 | moye-moye |
+| aukaat.mp3 | apni-aukaat |
+| padhai.mp3 | abeyy-padhai-likhai-karo |
+| uth-jaa.mp3 | abey-uth-jaa-saale |
+| thappad-dialogue.mp3 | thappad-mardunga-bakwaas-ki-toh-ohno |
+| chappal.mp3 | chappal-attack-sound-effect |
+| chappal-kadke.mp3 | chappal-kadke |
+| kya-baat.mp3 | yeh-kya-baat-hui |
+| mazak.mp3 | kaisa-laga-mazak |
+| maza.mp3 | abhi-maza-ayagga |
+| oye-hoye.mp3 | oye-hoye-haye-haye |
+| haye.mp3 | haye-oye |
+| uff.mp3 | uff |
+| acha-ji.mp3 | acha-ji-aisa-hai-kya |
+| sudhar.mp3 | sudhar-jao |
+| bruh.mp3 | bruh-sound-effect |
+| chup.mp3 | chup-kar-be-kutte |
+| pagal.mp3 | pagal-aee |
+| bhot-maza.mp3 | bhot-maza-ay-ga |
+
+`vine-boom.mp3` also comes from MyInstants (the actual meme hit), then had harmonics folded
+back in so it survives on a phone speaker instead of disappearing below 200 Hz.
+
+## Desi meme clips
+
+The `desi` group is pulled from [MyInstants](https://www.myinstants.com/) — user-uploaded
+meme audio, not a licensed library. They are here for personal use in a private friends
+group. They are **not** cleared for redistribution or commercial deployment; replace them
+if this ever goes properly public.
+
+| File | MyInstants clip |
+| --- | --- |
+| thulla.mp3 | thulla-by-hela |
+| goop.mp3 | goop-goop-goop |
+| moye.mp3 | moye-moye |
+| aukaat.mp3 | apni-aukaat |
+| padhai.mp3 | abeyy-padhai-likhai-karo |
+| uth-jaa.mp3 | abey-uth-jaa-saale |
+| thappad-dialogue.mp3 | thappad-mardunga-bakwaas-ki-toh-ohno |
+| chappal.mp3 | chappal-attack-sound-effect |
+| chappal-kadke.mp3 | chappal-kadke |
+| kya-baat.mp3 | yeh-kya-baat-hui |
+| mazak.mp3 | kaisa-laga-mazak |
+| maza.mp3 | abhi-maza-ayagga |
+| oye-hoye.mp3 | oye-hoye-haye-haye |
+| haye.mp3 | haye-oye |
+| uff.mp3 | uff |
+| acha-ji.mp3 | acha-ji-aisa-hai-kya |
+| sudhar.mp3 | sudhar-jao |
+| bruh.mp3 | bruh-sound-effect |
+| chup.mp3 | chup-kar-be-kutte |
+| pagal.mp3 | pagal-aee |
+| bhot-maza.mp3 | bhot-maza-ay-ga |
+
+`vine-boom.mp3` also comes from MyInstants (the actual meme hit), then had harmonics folded
+back in so it survives on a phone speaker instead of disappearing below 200 Hz.

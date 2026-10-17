@@ -11,7 +11,7 @@ Runs entirely in the browser. No backend, no accounts, no database — everythin
 - **Bhabhi Thulla** — one big tap target per player. Tap the loser, their count and losing streak go up, the round counter moves.
 - **Chess** — pick white and black, record a win either way or a draw. Head-to-head scorelines update instantly (`Fezan 4 — 2 Shoaib`).
 - **Hall of Shame** — ranked by losses, with a crown on the current Chief Bhabhi, a Clean Sheet badge for anyone untouched, and a Today / All-time switch.
-- **Soundboard** — 30 real clips: slaps and punches, pained voices, clown horn, sad trombone, bad-joke drums, vine boom, wrong-answer buzzer, crowd laugh/boo/cheer, shame siren. A weighted random one fires on every recorded loss, with pitch drift so repeats don't sound canned. Global mute and volume live in the header, every clip can be previewed, and an optional **Announcer** reads the verdict out loud using the device's own voice.
+- **Soundboard** — 51 real clips: slaps and punches, pained voices, clown horn, sad trombone, bad-joke drums, vine boom, wrong-answer buzzer, crowd laugh/boo/cheer, shame siren. Tapping a player as Bhabhi fires the whole storm at once — every slap, every voice clip and a few desi memes, staggered over ~700 ms behind a soft-clip limiter — with pitch drift so repeats don't sound canned. Global mute and volume live in the header, every clip can be previewed, and an optional **Announcer** reads the verdict out loud using the device's own voice.
 - **Challan** — per-player receipt formatted for WhatsApp, plus a full session receipt for the group chat. Copy or open WhatsApp directly.
 - **Portability** — auto-saves locally, JSON export/import for backups and phone transfers, and "Start new session" clears today while keeping all-time records.
 - **Undo** — every recorded loss gets an Undo button in the toast, because thumbs slip.
@@ -59,6 +59,6 @@ Nothing is overwritten when a session resets — a new session row is appended, 
 
 ## Notes
 
-- Audio is 30 licensed MP3s (~570 KB total) decoded into `AudioBuffer`s once, so taps play instantly. A synthesised slap takes over if a file cannot be fetched. Credits: `public/audio/CREDITS.md`. The first tap unlocks audio (mobile browser rule).
+- Audio is 51 MP3s (~1.2 MB total; Mixkit library plus a MyInstants desi-meme pack) decoded into `AudioBuffer`s once, so taps play instantly. A synthesised slap takes over if a file cannot be fetched. Credits: `public/audio/CREDITS.md`. The first tap unlocks audio (mobile browser rule).
 - Losses are recorded optimistically and persist immediately; there is no save button anywhere.
 - Layout is built for a phone held over a table: 44px+ tap targets, safe-area padding, sticky header, dark theme.

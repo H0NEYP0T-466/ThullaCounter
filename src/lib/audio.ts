@@ -9,7 +9,7 @@
  * the board from going silent.
  */
 
-export type CueGroup = 'hits' | 'voices' | 'comedy' | 'crowd'
+export type CueGroup = 'hits' | 'voices' | 'desi' | 'comedy' | 'crowd'
 
 export type Cue = {
   id: string
@@ -23,6 +23,7 @@ export type Cue = {
 export const CUE_GROUPS: { id: CueGroup; label: string }[] = [
   { id: 'hits', label: 'Slaps & hits' },
   { id: 'voices', label: 'Voices' },
+  { id: 'desi', label: 'Desi memes' },
   { id: 'comedy', label: 'Comedy' },
   { id: 'crowd', label: 'Crowd & stingers' },
 ]
@@ -43,6 +44,28 @@ export const CUES: Cue[] = [
   { id: 'donkey', label: 'Donkey Scream', emoji: '🫏', group: 'voices', weight: 3, file: '/audio/donkey.mp3' },
   { id: 'man-pain', label: 'Man in Pain', emoji: '😫', group: 'voices', weight: 3, file: '/audio/man-pain.mp3' },
   { id: 'ah-pain', label: 'Ah!', emoji: '😵', group: 'voices', weight: 2, file: '/audio/ah-pain.mp3' },
+
+  { id: 'thulla', label: 'Thulla!', emoji: '🫵', group: 'desi', weight: 4, file: '/audio/thulla.mp3' },
+  { id: 'moye', label: 'Moye Moye', emoji: '🌀', group: 'desi', weight: 4, file: '/audio/moye.mp3' },
+  { id: 'goop', label: 'Goop Goop', emoji: '🫠', group: 'desi', weight: 3, file: '/audio/goop.mp3' },
+  { id: 'thappad-dialogue', label: 'Thappad!', emoji: '✋', group: 'desi', weight: 4, file: '/audio/thappad-dialogue.mp3' },
+  { id: 'aukaat', label: 'Apni Aukaat', emoji: '🫳', group: 'desi', weight: 3, file: '/audio/aukaat.mp3' },
+  { id: 'padhai', label: 'Padhai Karo', emoji: '📚', group: 'desi', weight: 3, file: '/audio/padhai.mp3' },
+  { id: 'uth-jaa', label: 'Uth Jaa', emoji: '🛌', group: 'desi', weight: 3, file: '/audio/uth-jaa.mp3' },
+  { id: 'maza', label: 'Maza Aayega', emoji: '🍿', group: 'desi', weight: 3, file: '/audio/maza.mp3' },
+  { id: 'chappal', label: 'Chappal', emoji: '🩴', group: 'desi', weight: 3, file: '/audio/chappal.mp3' },
+  { id: 'chappal-kadke', label: 'Chappal Kadke', emoji: '👡', group: 'desi', weight: 2, file: '/audio/chappal-kadke.mp3' },
+  { id: 'bruh', label: 'Bruh', emoji: '😐', group: 'desi', weight: 3, file: '/audio/bruh.mp3' },
+  { id: 'kya-baat', label: 'Kya Baat Hui', emoji: '🤨', group: 'desi', weight: 2, file: '/audio/kya-baat.mp3' },
+  { id: 'mazak', label: 'Kaisa Mazak', emoji: '😏', group: 'desi', weight: 2, file: '/audio/mazak.mp3' },
+  { id: 'oye-hoye', label: 'Oye Hoye', emoji: '🕺', group: 'desi', weight: 2, file: '/audio/oye-hoye.mp3' },
+  { id: 'haye', label: 'Haye', emoji: '😵', group: 'desi', weight: 2, file: '/audio/haye.mp3' },
+  { id: 'uff', label: 'Uff', emoji: '😮‍💨', group: 'desi', weight: 2, file: '/audio/uff.mp3' },
+  { id: 'acha-ji', label: 'Acha Ji', emoji: '🙃', group: 'desi', weight: 2, file: '/audio/acha-ji.mp3' },
+  { id: 'sudhar', label: 'Sudhar Jao', emoji: '🛐', group: 'desi', weight: 2, file: '/audio/sudhar.mp3' },
+  { id: 'chup', label: 'Chup Kar', emoji: '🤫', group: 'desi', weight: 2, file: '/audio/chup.mp3' },
+  { id: 'pagal', label: 'Pagal', emoji: '🤪', group: 'desi', weight: 2, file: '/audio/pagal.mp3' },
+  { id: 'bhot-maza', label: 'Bhot Maza', emoji: '🎊', group: 'desi', weight: 1, file: '/audio/bhot-maza.mp3' },
 
   { id: 'clown', label: 'Clown Horn', emoji: '🤡', group: 'comedy', weight: 3, file: '/audio/clown.mp3' },
   { id: 'trombone', label: 'Sad Trombone', emoji: '🎺', group: 'comedy', weight: 3, file: '/audio/trombone.mp3' },
@@ -74,6 +97,19 @@ let announcer = true
 const buffers = new Map<string, AudioBuffer>()
 let preloadPromise: Promise<void> | null = null
 
+function softClipCurve(): Float32Array<ArrayBuffer> {
+  const samples = 2048
+  const curve = new Float32Array(new ArrayBuffer(samples * 4))
+  const knee = 0.7
+  for (let i = 0; i < samples; i += 1) {
+    const x = (i / (samples - 1)) * 2 - 1
+    const a = Math.abs(x)
+    const y = a <= knee ? a : knee + (1 - knee) * Math.tanh((a - knee) / (1 - knee))
+    curve[i] = Math.sign(x) * y
+  }
+  return curve
+}
+
 function getContext(): AudioContext | null {
   if (typeof window === 'undefined') return null
   if (!ctx) {
@@ -86,9 +122,13 @@ function getContext(): AudioContext | null {
       master = ctx.createGain()
       master.gain.value = muted ? 0 : volume * 0.95 * 0.95
 
-      // Clips are already peak-normalised to about -1 dBFS, so the master bus is
-      // a plain gain with a little headroom. No compression: it only flattens slaps.
-      master.connect(ctx.destination)
+      // Clips are peak-normalised to about -1 dBFS. A soft-knee shaper sits on the
+      // master bus so a 15-sound slap storm saturates instead of clipping.
+      const shaper = ctx.createWaveShaper()
+      shaper.curve = softClipCurve()
+      shaper.oversample = '2x'
+      master.connect(shaper)
+      shaper.connect(ctx.destination)
     } catch {
       return null
     }
@@ -164,9 +204,18 @@ async function loadOne(cue: Cue): Promise<AudioBuffer | null> {
 
 export function preloadAudio(): Promise<void> {
   if (!preloadPromise) {
-    preloadPromise = Promise.all(CUES.map((cue) => loadOne(cue)))
+    // The sounds that fire on a tap load first; the rest can wait.
+    const eager = CUES.filter((cue) => cue.group === 'hits' || cue.group === 'voices')
+    preloadPromise = Promise.all(eager.map((cue) => loadOne(cue)))
       .then(() => undefined)
       .catch(() => undefined)
+    void preloadPromise.then(() => {
+      window.setTimeout(() => {
+        void Promise.all(
+          CUES.filter((cue) => cue.group !== 'hits' && cue.group !== 'voices').map((cue) => loadOne(cue)),
+        )
+      }, 1200)
+    })
   }
   return preloadPromise
 }
@@ -207,7 +256,7 @@ function synthSlap(context: AudioContext, out: AudioNode): void {
   osc.stop(start + 0.2)
 }
 
-export async function playCue(cue: Cue): Promise<void> {
+export async function playCue(cue: Cue, gainMultiplier = 1): Promise<void> {
   const context = getContext()
   if (!context || !master) return
   if (muted || volume <= 0) return
@@ -224,7 +273,7 @@ export async function playCue(cue: Cue): Promise<void> {
   source.playbackRate.value = 0.96 + Math.random() * 0.08
 
   const gain = context.createGain()
-  gain.gain.value = 1
+  gain.gain.value = gainMultiplier
 
   if (context.createStereoPanner) {
     const panner = context.createStereoPanner()
@@ -238,6 +287,25 @@ export async function playCue(cue: Cue): Promise<void> {
   }
 
   source.start()
+}
+
+/**
+ * The tap response: every slap and every voice clip, staggered by 55 ms, plus a few
+ * desi memes. A wall of sound rather than one polite sound effect.
+ */
+export function playStorm(): void {
+  const hits = CUES.filter((cue) => cue.group === 'hits')
+  const voices = CUES.filter((cue) => cue.group === 'voices')
+  const desi = CUES.filter((cue) => cue.group === 'desi')
+    .slice()
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3)
+  const sequence = [...hits, ...voices, ...desi]
+  sequence.forEach((cue, index) => {
+    window.setTimeout(() => {
+      void playCue(cue, 0.55)
+    }, index * 42)
+  })
 }
 
 export function playRandomLossCue(): Cue | null {

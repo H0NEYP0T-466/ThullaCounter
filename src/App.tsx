@@ -7,12 +7,14 @@ import { ConfirmDialog, Sheet, Toast } from './components/Sheet'
 import { Icon, Logo } from './components/Icon'
 import { useStore, type UndoAction } from './lib/useStore'
 import { buildLeaderboard, sessionLabel, type Scope } from './lib/stats'
+import { plural } from './lib/format'
 import {
   configureAudio,
   CUE_GROUPS,
   CUES,
   playCue,
   playRandomLossCue,
+  playStorm,
   preloadAudio,
   speakTaunt,
   stopSpeech,
@@ -48,9 +50,13 @@ export default function App() {
   const [wipeOpen, setWipeOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [pendingImport, setPendingImport] = useState<AppState | null>(null)
-  const [slam, setSlam] = useState<{ id: number; name: string; emoji: string; word: string } | null>(
-    null,
-  )
+  const [slam, setSlam] = useState<{
+    id: number
+    name: string
+    word: string
+    sub: string
+    hand: string
+  } | null>(null)
   const [shake, setShake] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -92,12 +98,18 @@ export default function App() {
         streak += 1
       }
 
-      playRandomLossCue()
-      vibrate([28, 45, 28, 45, 60])
-      setSlam({ id: Date.now(), name: player.name, emoji: player.emoji, word: 'BHABHI!' })
+      playStorm()
+      vibrate([40, 60, 40, 60, 120])
+      setSlam({
+        id: Date.now(),
+        name: player.name,
+        word: 'BHABHI!',
+        sub: `${player.name.toUpperCase()} IS BHABHI`,
+        hand: '🖐️',
+      })
       setShake(true)
-      window.setTimeout(() => setShake(false), 460)
-      window.setTimeout(() => setSlam(null), 1050)
+      window.setTimeout(() => setShake(false), 620)
+      window.setTimeout(() => setSlam(null), 1250)
       speakTaunt(spokenBhabhi(player.name))
       notify(pickRoast(player.name, streak), () => runUndo(undo))
     },
@@ -120,12 +132,13 @@ export default function App() {
         setSlam({
           id: Date.now(),
           name: loser?.name ?? 'Loser',
-          emoji: loser?.emoji ?? '♟️',
           word: 'CHECKMATE',
+          sub: `${(loser?.name ?? 'LOSER').toUpperCase()} GOT COOKED`,
+          hand: '♟️',
         })
         setShake(true)
-        window.setTimeout(() => setShake(false), 460)
-        window.setTimeout(() => setSlam(null), 1050)
+        window.setTimeout(() => setShake(false), 620)
+        window.setTimeout(() => setSlam(null), 1250)
         speakTaunt(spokenChess(loser?.name ?? 'Loser'))
         notify(undo.label, () => runUndo(undo))
       }
@@ -252,7 +265,7 @@ export default function App() {
       <footer className="app-foot">
         <span>{chiefName ? `Chief Bhabhi: ${chiefName}` : 'No chief yet. Somebody has to lose.'}</span>
         <span className="app-foot__dot">·</span>
-        <span>{board.totalBhabhi + board.totalChess} games on record</span>
+        <span>{plural(board.totalBhabhi + board.totalChess, 'game')} on record</span>
       </footer>
 
       <input
@@ -269,11 +282,12 @@ export default function App() {
 
       {slam ? (
         <div className="slam" aria-hidden="true">
-          <span className="slam__emoji">{slam.emoji}</span>
+          <span className="slam__ring" />
+          <span className="slam__hand">{slam.hand}</span>
           <span className={`slam__word ${slam.word.length > 6 ? 'slam__word--long' : ''}`}>
             {slam.word}
           </span>
-          <span className="slam__name">{slam.name}</span>
+          <span className="slam__name">{slam.sub}</span>
         </div>
       ) : null}
 
@@ -291,7 +305,7 @@ export default function App() {
       <Sheet
         open={soundOpen}
         title="Soundboard"
-        subtitle={`${CUES.length} real clips. One fires on every recorded loss.`}
+        subtitle={`${CUES.length} real clips. Every tap fires the storm.`}
         onClose={() => setSoundOpen(false)}
       >
         <div className="sound-head">
@@ -366,7 +380,9 @@ export default function App() {
             </div>
           </section>
         ))}
-        <p className="hint hint--left">Tap any cue to preview. One fires at random on every loss.</p>
+        <p className="hint hint--left">
+          Tap any cue to preview. Every Bhabhi tap fires the whole storm at once.
+        </p>
       </Sheet>
 
       <Sheet
