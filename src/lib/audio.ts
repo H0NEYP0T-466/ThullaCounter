@@ -20,6 +20,8 @@ export type Cue = {
   file: string
 }
 
+const EAGER_DESI = new Set(['thulla', 'moye', 'goop', 'aukaat', 'padhai'])
+
 export const CUE_GROUPS: { id: CueGroup; label: string }[] = [
   { id: 'hits', label: 'Slaps & hits' },
   { id: 'voices', label: 'Voices' },
@@ -205,16 +207,24 @@ async function loadOne(cue: Cue): Promise<AudioBuffer | null> {
 export function preloadAudio(): Promise<void> {
   if (!preloadPromise) {
     // The sounds that fire on a tap load first; the rest can wait.
-    const eager = CUES.filter((cue) => cue.group === 'hits' || cue.group === 'voices')
+    const eager = CUES.filter(
+      (cue) =>
+        cue.group === 'hits' || cue.group === 'voices' || (cue.group === 'desi' && EAGER_DESI.has(cue.id)),
+    )
     preloadPromise = Promise.all(eager.map((cue) => loadOne(cue)))
       .then(() => undefined)
       .catch(() => undefined)
+
+    // Everything else trickles in one file at a time so decoding never fights the animation.
     void preloadPromise.then(() => {
-      window.setTimeout(() => {
-        void Promise.all(
-          CUES.filter((cue) => cue.group !== 'hits' && cue.group !== 'voices').map((cue) => loadOne(cue)),
-        )
-      }, 1200)
+      const rest = CUES.filter((cue) => !eager.includes(cue))
+      const step = (index: number) => {
+        if (index >= rest.length) return
+        void loadOne(rest[index]).then(() => {
+          window.setTimeout(() => step(index + 1), 90)
+        })
+      }
+      window.setTimeout(() => step(0), 1500)
     })
   }
   return preloadPromise
@@ -256,6 +266,33 @@ function synthSlap(context: AudioContext, out: AudioNode): void {
   osc.stop(start + 0.2)
 }
 
+function startBuffer(
+  context: AudioContext,
+  out: AudioNode,
+  buffer: AudioBuffer,
+  when: number,
+  gainMultiplier: number,
+): void {
+  const source = context.createBufferSource()
+  source.buffer = buffer
+  source.playbackRate.value = 0.96 + Math.random() * 0.08
+
+  const gain = context.createGain()
+  gain.gain.value = gainMultiplier
+
+  if (context.createStereoPanner) {
+    const panner = context.createStereoPanner()
+    panner.pan.value = (Math.random() - 0.5) * 0.35
+    source.connect(gain)
+    gain.connect(panner)
+    panner.connect(out)
+  } else {
+    source.connect(gain)
+    gain.connect(out)
+  }
+  source.start(when)
+}
+
 export async function playCue(cue: Cue, gainMultiplier = 1): Promise<void> {
   const context = getContext()
   if (!context || !master) return
@@ -267,26 +304,7 @@ export async function playCue(cue: Cue, gainMultiplier = 1): Promise<void> {
     return
   }
 
-  const source = context.createBufferSource()
-  source.buffer = buffer
-  // A little pitch drift keeps repeats from sounding like a broken button.
-  source.playbackRate.value = 0.96 + Math.random() * 0.08
-
-  const gain = context.createGain()
-  gain.gain.value = gainMultiplier
-
-  if (context.createStereoPanner) {
-    const panner = context.createStereoPanner()
-    panner.pan.value = (Math.random() - 0.5) * 0.35
-    source.connect(gain)
-    gain.connect(panner)
-    panner.connect(master)
-  } else {
-    source.connect(gain)
-    gain.connect(master)
-  }
-
-  source.start()
+  startBuffer(context, master, buffer, context.currentTime, gainMultiplier)
 }
 
 /**
@@ -296,15 +314,23 @@ export async function playCue(cue: Cue, gainMultiplier = 1): Promise<void> {
 export function playStorm(): void {
   const hits = CUES.filter((cue) => cue.group === 'hits')
   const voices = CUES.filter((cue) => cue.group === 'voices')
-  const desi = CUES.filter((cue) => cue.group === 'desi')
+  // Only ever pick desi cues that are already decoded, so a tap never waits on the network.
+  const desi = CUES.filter((cue) => cue.group === 'desi' && EAGER_DESI.has(cue.id) && buffers.has(cue.id))
     .slice()
     .sort(() => Math.random() - 0.5)
     .slice(0, 3)
   const sequence = [...hits, ...voices, ...desi]
-  sequence.forEach((cue, index) => {
-    window.setTimeout(() => {
-      void playCue(cue, 0.55)
-    }, index * 42)
+  const context = getContext()
+  if (!context || !master || muted || volume <= 0) return
+
+  // One decode batch, one scheduling pass, all on the audio clock. No timers fighting
+  // the animation frame.
+  void Promise.all(sequence.map((cue) => loadOne(cue))).then((loaded) => {
+    const start = context.currentTime + 0.01
+    loaded.forEach((buffer, index) => {
+      if (!buffer) return
+      startBuffer(context, master as GainNode, buffer, start + index * 0.03, 0.55)
+    })
   })
 }
 

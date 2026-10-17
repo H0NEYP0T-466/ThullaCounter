@@ -48,8 +48,11 @@ export default function App() {
   const [receiptOpen, setReceiptOpen] = useState(false)
   const [resetOpen, setResetOpen] = useState(false)
   const [wipeOpen, setWipeOpen] = useState(false)
+  const [wipePassword, setWipePassword] = useState('')
+  const [wipeError, setWipeError] = useState(false)
   const [copied, setCopied] = useState(false)
   const [pendingImport, setPendingImport] = useState<AppState | null>(null)
+  const [warm, setWarm] = useState(true)
   const [slam, setSlam] = useState<{
     id: number
     name: string
@@ -57,7 +60,6 @@ export default function App() {
     sub: string
     hand: string
   } | null>(null)
-  const [shake, setShake] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const board = useMemo(() => buildLeaderboard(state, scope), [state, scope])
@@ -65,6 +67,18 @@ export default function App() {
   useEffect(() => {
     configureAudio(state.settings)
   }, [state.settings])
+
+  // Run the slam once, invisibly, so its layers are rasterised before the first tap.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setWarm(false), 1300)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  // Run the slam once, invisibly, so its layers are rasterised before the first tap.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setWarm(false), 1300)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     const unlock = () => {
@@ -107,9 +121,7 @@ export default function App() {
         sub: `${player.name.toUpperCase()} IS BHABHI`,
         hand: '🖐️',
       })
-      setShake(true)
-      window.setTimeout(() => setShake(false), 620)
-      window.setTimeout(() => setSlam(null), 1250)
+      window.setTimeout(() => setSlam(null), 950)
       speakTaunt(spokenBhabhi(player.name))
       notify(pickRoast(player.name, streak), () => runUndo(undo))
     },
@@ -136,9 +148,7 @@ export default function App() {
           sub: `${(loser?.name ?? 'LOSER').toUpperCase()} GOT COOKED`,
           hand: '♟️',
         })
-        setShake(true)
-        window.setTimeout(() => setShake(false), 620)
-        window.setTimeout(() => setSlam(null), 1250)
+        window.setTimeout(() => setSlam(null), 950)
         speakTaunt(spokenChess(loser?.name ?? 'Loser'))
         notify(undo.label, () => runUndo(undo))
       }
@@ -177,10 +187,24 @@ export default function App() {
     }
   }
 
+  const confirmWipe = () => {
+    if (wipePassword.trim().toLowerCase() !== 'shoaib') {
+      setWipeError(true)
+      setWipePassword('')
+      vibrate(60)
+      return
+    }
+    wipePlayers()
+    setWipeOpen(false)
+    setWipePassword('')
+    setWipeError(false)
+    notify('Board wiped. Fresh start.', undefined, 'danger')
+  }
+
   const chiefName = board.chiefId ? board.byId[board.chiefId].player.name : null
 
   return (
-    <div className={`app ${shake ? 'app--shake' : ''}`}>
+    <div className="app">
       <header className="topbar">
         <div className="brand">
           <Logo size={32} />
@@ -280,16 +304,15 @@ export default function App() {
         }}
       />
 
-      {slam ? (
-        <div className="slam" aria-hidden="true">
-          <span className="slam__ring" />
-          <span className="slam__hand">{slam.hand}</span>
-          <span className={`slam__word ${slam.word.length > 6 ? 'slam__word--long' : ''}`}>
-            {slam.word}
-          </span>
-          <span className="slam__name">{slam.sub}</span>
-        </div>
-      ) : null}
+      <div className={`slam ${slam ? 'is-on' : ''} ${warm ? 'is-warm' : ''}`} aria-hidden="true">
+        <span className="slam__glow" />
+        <span className="slam__ring" />
+        <span className="slam__hand">{slam?.hand ?? '🖐️'}</span>
+        <span className={`slam__word ${(slam?.word.length ?? 0) > 6 ? 'slam__word--long' : ''}`}>
+          {slam?.word ?? 'BHABHI!'}
+        </span>
+        <span className="slam__name">{slam?.sub ?? ''}</span>
+      </div>
 
       {toast ? (
         <Toast
@@ -527,23 +550,63 @@ export default function App() {
         onClose={() => setResetOpen(false)}
       />
 
-      <ConfirmDialog
+      <Sheet
         open={wipeOpen}
         title="Erase everything?"
-        body={
-          <p>
-            Every player, every round, every chess match and all-time record is deleted. Export a backup
-            first if there is any doubt.
-          </p>
-        }
-        confirmLabel="Erase all data"
-        danger
-        onConfirm={() => {
-          wipePlayers()
-          notify('Board wiped. Fresh start.', undefined, 'danger')
+        subtitle="Password required. This cannot be undone."
+        onClose={() => {
+          setWipeOpen(false)
+          setWipePassword('')
+          setWipeError(false)
         }}
-        onClose={() => setWipeOpen(false)}
-      />
+        footer={
+          <div className="row-gap">
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => {
+                setWipeOpen(false)
+                setWipePassword('')
+                setWipeError(false)
+              }}
+            >
+              Cancel
+            </button>
+            <button type="button" className="btn btn--danger" onClick={confirmWipe}>
+              Erase all data
+            </button>
+          </div>
+        }
+      >
+        <p className="sheet__text">
+          Every player, every round, every chess match and all-time record is deleted. Export a backup
+          first if there is any doubt.
+        </p>
+        <label className="field">
+          <span>Password</span>
+          <input
+            className={`input ${wipeError ? 'input--error' : ''}`}
+            type="password"
+            value={wipePassword}
+            autoFocus
+            autoComplete="off"
+            placeholder="Enter password"
+            enterKeyHint="done"
+            onChange={(event) => {
+              setWipePassword(event.target.value)
+              setWipeError(false)
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') confirmWipe()
+            }}
+          />
+        </label>
+        {wipeError ? (
+          <p className="field__error" role="alert">
+            Wrong password. Nothing was deleted.
+          </p>
+        ) : null}
+      </Sheet>
     </div>
   )
 }

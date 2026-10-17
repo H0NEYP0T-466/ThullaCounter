@@ -175,12 +175,18 @@ export function playerName(state: AppState, id: string): string {
   return state.players.find((p) => p.id === id)?.name ?? 'Unknown'
 }
 
+const labelCache = new Map<string, string>()
+
 export function sessionLabel(state: AppState): string {
   const session = state.sessions.find((s) => s.id === state.currentSessionId)
   if (!session) return 'Today'
-  return new Date(session.startedAt).toLocaleDateString(undefined, {
+  const cached = labelCache.get(session.id)
+  if (cached) return cached
+  const label = new Date(session.startedAt).toLocaleDateString(undefined, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   })
+  labelCache.set(session.id, label)
+  return label
 }
