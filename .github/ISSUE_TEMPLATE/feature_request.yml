@@ -1,0 +1,61 @@
+name: "Feature request"
+description: "Propose an enhancement"
+labels: ["enhancement"]
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem before the solution. Features that keep ThullaBoard backend-free, offline-capable, and usable one-handed on a phone are the easiest to accept.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is painful, missing, or awkward today? Who hits it and when?
+      placeholder: "After a session reset there is no way to see who was on the longest losing streak last week."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What you would like to happen. Sketch the interaction if it is a UI change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about, and why you rejected them.
+    validations:
+      required: false
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is in scope for this request, and what is explicitly out of scope.
+      placeholder: |
+        In scope: a per-session streak column in the Hall of Shame.
+        Out of scope: cross-device sync, accounts, a server.
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: What could break, get slower, or become more confusing? Any storage-format change needs a migration note.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, screenshots of similar apps, related issues.
+    validations:
+      required: false

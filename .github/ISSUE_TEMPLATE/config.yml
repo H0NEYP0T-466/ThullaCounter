@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & general discussion
+    url: https://github.com/H0NEYP0T-466/ThullaCounter/discussions
+    about: Ask how something works, share your group's scoreboard, or suggest an idea before filing a formal request.
+
+  - name: 🛡 Report a security vulnerability
+    url: https://github.com/H0NEYP0T-466/ThullaCounter/security/advisories/new
+    about: Please report vulnerabilities privately. Do not open a public issue for security problems.
+
+  - name: 📖 Read the documentation
+    url: https://github.com/H0NEYP0T-466/ThullaCounter#readme
+    about: Installation, usage, folder structure, and the audio credits are all in the README.

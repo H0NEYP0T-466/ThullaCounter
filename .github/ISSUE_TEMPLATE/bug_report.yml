@@ -1,0 +1,114 @@
+name: "Bug report"
+description: "Report a reproducible problem"
+labels: ["bug"]
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. A bug that cannot be reproduced cannot be fixed — the more precise the steps, the faster this moves.
+
+        Before filing, please confirm you are on the latest `main` and that the issue is not already listed under [Issues](https://github.com/H0NEYP0T-466/ThullaCounter/issues).
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing the problem.
+      placeholder: "Recording a chess draw marks both players as losers in the Hall of Shame."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact, ordered steps. Start from a fresh session where possible.
+      placeholder: |
+        1. Open Roster and add two players
+        2. Go to Chess, select both players
+        3. Tap Draw
+        4. Open Shame and check the loss counts
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead. Include any error text shown in the UI.
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Android 15 / iOS 18.4 / Windows 11 / Arch Linux"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App version or commit
+      description: The commit SHA, or the version shown in package.json.
+      placeholder: "main @ 85215b4"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Browser and runtime
+      description: Browser name and version. Mention if you are running `npm run dev` or the production build.
+      placeholder: "Chrome 141.0.7390.54, production build served by vite preview"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Console output, stack traces, or the contents of the `thullaboard.v1` key if it is relevant.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag images in here if the problem is visual. Optional but very helpful.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How much does this break the app?
+      options:
+        - "Critical — data loss or the app is unusable"
+        - "High — a core flow (scoring, chess, challan) is broken"
+        - "Medium — wrong numbers or a broken edge case"
+        - "Low — cosmetic or minor annoyance"
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else worth knowing — number of players, whether a session reset happened, whether sound was on.
+    validations:
+      required: false
