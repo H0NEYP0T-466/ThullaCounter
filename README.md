@@ -13,6 +13,7 @@
   ![GitHub Issues](https://img.shields.io/github/issues/H0NEYP0T-466/ThullaCounter?style=for-the-badge&color=red)
   ![GitHub Pull Requests](https://img.shields.io/github/issues-pr/H0NEYP0T-466/ThullaCounter?style=for-the-badge&color=orange)
   ![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen?style=for-the-badge)
+  ![Live Demo](https://img.shields.io/badge/Live%20Demo-thulla--counter.vercel.app-f5b93c?style=for-the-badge&logo=vercel&logoColor=black)
 
   <!-- Activity -->
   ![Last Commit](https://img.shields.io/github/last-commit/H0NEYP0T-466/ThullaCounter?style=for-the-badge&color=purple)
@@ -37,6 +38,7 @@ No backend, no accounts, no database. Everything lives in `localStorage` on the 
 
 ## 🔗 Links
 
+- **Live demo** — [thulla-counter.vercel.app](https://thulla-counter.vercel.app)
 - **Repository** — [github.com/H0NEYP0T-466/ThullaCounter](https://github.com/H0NEYP0T-466/ThullaCounter)
 - **Issues** — [Report a bug or request a feature](https://github.com/H0NEYP0T-466/ThullaCounter/issues)
 - **Discussions** — [Ask a question](https://github.com/H0NEYP0T-466/ThullaCounter/discussions)
@@ -79,7 +81,9 @@ npm install
 npm run dev
 ```
 
-The app is served at `http://localhost:5173`. Open it on your phone over the same network (`npm run dev -- --host`) and add it to your home screen — it ships a web manifest and runs standalone.
+Or skip the setup and use the live app: **https://thulla-counter.vercel.app**
+
+Locally, the app is served at `http://localhost:5173`. Open it on your phone over the same network (`npm run dev -- --host`) and add it to your home screen — it ships a web manifest and runs standalone.
 
 **Production build**
 
@@ -184,6 +188,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. In short:
 ## 📜 License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for the full text.
+
+The audio clips in `public/audio/` are third-party works and are not covered by the MIT license. See [public/audio/CREDITS.md](public/audio/CREDITS.md) for each source. The desi meme pack is personal use only and is not cleared for commercial redistribution.
 
 ## 🛡 Security
 
