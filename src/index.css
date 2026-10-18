@@ -1999,11 +1999,71 @@ p {
   pointer-events: none;
   contain: layout paint;
   backface-visibility: hidden;
-  contain: layout paint;
-  backface-visibility: hidden;
   background: rgba(6, 4, 6, 0.55);
   opacity: 0;
   visibility: hidden;
+}
+
+.slam.is-on {
+  visibility: visible;
+  animation:
+    slam-fade 900ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
+    slam-quake 240ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes slam-quake {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  15% {
+    transform: translate3d(-7px, 3px, 0);
+  }
+  30% {
+    transform: translate3d(6px, -3px, 0);
+  }
+  45% {
+    transform: translate3d(-5px, 2px, 0);
+  }
+  60% {
+    transform: translate3d(4px, -2px, 0);
+  }
+  80% {
+    transform: translate3d(-2px, 1px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slam.is-on {
+  visibility: visible;
+  animation:
+    slam-fade 900ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
+    slam-quake 240ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes slam-quake {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  15% {
+    transform: translate3d(-7px, 3px, 0);
+  }
+  30% {
+    transform: translate3d(6px, -3px, 0);
+  }
+  45% {
+    transform: translate3d(-5px, 2px, 0);
+  }
+  60% {
+    transform: translate3d(4px, -2px, 0);
+  }
+  80% {
+    transform: translate3d(-2px, 1px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .slam.is-warm {
@@ -2011,7 +2071,6 @@ p {
   opacity: 0.001;
 }
 
-.slam.is-warm::before,
 .slam.is-warm .slam__glow,
 .slam.is-warm .slam__hand,
 .slam.is-warm .slam__ring,
@@ -2038,7 +2097,7 @@ p {
 
 .slam__hand {
   position: relative;
-  font-size: clamp(3.6rem, 20vw, 5.2rem);
+  font-size: clamp(4rem, 22vw, 5.8rem);
   line-height: 1;
   margin-bottom: 2px;
 }
@@ -2100,7 +2159,7 @@ p {
   will-change: transform, opacity;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(2.9rem, 16vw, 4.4rem);
+  font-size: clamp(3.1rem, 17vw, 4.8rem);
   line-height: 0.9;
   letter-spacing: -0.05em;
   text-transform: uppercase;
@@ -2112,11 +2171,6 @@ p {
 
 .slam.is-on .slam__word {
   animation: slam-pop 420ms cubic-bezier(0.16, 1.2, 0.3, 1) both;
-}
-
-.slam__word--long {
-  font-size: clamp(2.1rem, 12.5vw, 3.8rem);
-  letter-spacing: -0.04em;
 }
 
 .slam__word--long {
